@@ -10,28 +10,39 @@ class WebScrapper
 {
     public static void main(String[] args)
     {
-        String SearchedTerm = inputString("Enter: ");
-        searchItem(SearchedTerm);
+        String SearchedAddress = inputString("Enter address to search (Leave blank for google search): ");
+        String SearchedTerm = inputString("Enter term to search: ");
+        String EnterSearchDepth = inputString("Enter term to search: ");
+        searchItem(SearchedTerm, "https://www.geeksforgeeks.org/", 1);
     }
 
-    public static void searchItem(String Term)
+    public static void searchItem(String Term, String SearchLink, int DepthTravel)
     {
         try {
             Document doc
                     = Jsoup
-                    .connect("https://google.com")
+                    .connect(SearchLink)
                     .get();
-            Elements links = doc.select("a[href]");
+
             //Elements images = doc.select("img[src]");
             //System.out.println("Links: ");
             String PageText = doc.body().text();
-            System.out.println(PageText.contains(Term));
+            int NumberOfFinds = findOccurances(Term,PageText);
+            print(SearchLink + " Found: " + NumberOfFinds);
+            //System.out.println(PageText.contains(Term));
 
+            if (DepthTravel > 0)
+            {
+                Elements links = doc.select("a[href]");
+                int NextDepth = DepthTravel - 1;
 
-            for (Element link : links) {
-                System.out.println(link.attr("href"));
+                for (Element link : links) {
+                    String LinkAddress = link.attr("href");
+                    searchItem(Term,LinkAddress , NextDepth);
+                }
             }
-            System.out.println("\n-----\n");
+
+            //System.out.println("\n-----\n");
             /*System.out.println("Images:");
             for (Element image : images) {
                 System.out.println(image.attr("src"));
@@ -54,15 +65,18 @@ class WebScrapper
         System.out.println(Mes);
     }
 
-    public static void findOccurances(String Term, String Text)
+    public static int findOccurances(String Term, String Text)
     {
-        int Counter = 0;
+        int Finds = 0;
         int IndexFound = Text.indexOf(Term);
 
         while (IndexFound > 0)
         {
-            
+            Finds++;
+            IndexFound = Text.indexOf(Term,IndexFound + Term.length());
         }
+
+        return Finds;
     }
 
 }
